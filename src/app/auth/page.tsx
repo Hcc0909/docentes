@@ -7,12 +7,15 @@ import { useRouter } from 'next/navigation'
 
 type Modo = 'login' | 'registro' | 'recuperar'
 
+const CODIGO_ACCESO = '2026-EAP-EACC'
+
 export default function AuthPage() {
   const router = useRouter()
   const [modo,      setModo]      = useState<Modo>('login')
   const [nombre,    setNombre]    = useState('')
   const [email,     setEmail]     = useState('')
   const [telefono,  setTelefono]  = useState('')
+  const [codigo,    setCodigo]    = useState('')
   const [password,  setPassword]  = useState('')
   const [confirmar, setConfirmar] = useState('')
   const [verPass,   setVerPass]   = useState(false)
@@ -49,6 +52,7 @@ export default function AuthPage() {
     if (!nombre.trim())             { setError('El nombre es obligatorio.'); return }
     if (!telefono.trim())           { setError('El teléfono es obligatorio.'); return }
     if (!/^\d{10}$/.test(telefono)) { setError('El teléfono debe tener exactamente 10 dígitos.'); return }
+    if (codigo !== CODIGO_ACCESO)   { setError('Código de acceso incorrecto.'); return }
     if (password !== confirmar)     { setError('Las contraseñas no coinciden.'); return }
     setCargando(true); limpiar()
     try {
@@ -108,16 +112,21 @@ export default function AuthPage() {
           {modo === 'login' && (
             <form onSubmit={handleLogin} className="space-y-4">
               <Campo label="Correo" icon={<Mail size={15}/>}>
-                <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="correo@ejemplo.com" className={inputClass}/>
+                <input type="email" required value={email} onChange={e=>setEmail(e.target.value)}
+                  placeholder="correo@ejemplo.com" className={inputClass}/>
               </Campo>
               <Campo label="Contraseña" icon={<Lock size={15}/>} extra={
-                <button type="button" onClick={()=>setVerPass(!verPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <button type="button" onClick={()=>setVerPass(!verPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                   {verPass ? <EyeOff size={15}/> : <Eye size={15}/>}
                 </button>}>
-                <input type={verPass?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Tu contraseña" className={inputClass+' pr-10'}/>
+                <input type={verPass?'text':'password'} required value={password}
+                  onChange={e=>setPassword(e.target.value)} placeholder="Tu contraseña"
+                  className={inputClass+' pr-10'}/>
               </Campo>
               <div className="text-right">
-                <button type="button" onClick={()=>cambiarModo('recuperar')} className="text-xs text-blue-600 hover:underline">
+                <button type="button" onClick={()=>cambiarModo('recuperar')}
+                  className="text-xs text-blue-600 hover:underline">
                   ¿Olvidaste tu contraseña?
                 </button>
               </div>
@@ -125,7 +134,8 @@ export default function AuthPage() {
               <BtnSubmit cargando={cargando} label="Iniciar sesión"/>
               <p className="text-center text-sm text-gray-500">
                 ¿No tienes cuenta?{' '}
-                <button type="button" onClick={()=>cambiarModo('registro')} className="text-blue-600 font-semibold hover:underline">Regístrate</button>
+                <button type="button" onClick={()=>cambiarModo('registro')}
+                  className="text-blue-600 font-semibold hover:underline">Regístrate</button>
               </p>
             </form>
           )}
@@ -134,28 +144,41 @@ export default function AuthPage() {
           {modo === 'registro' && (
             <form onSubmit={handleRegistro} className="space-y-4">
               <Campo label="Nombre completo" icon={<User size={15}/>}>
-                <input type="text" required value={nombre} onChange={e=>setNombre(e.target.value)} placeholder="Tu nombre" className={inputClass}/>
+                <input type="text" required value={nombre} onChange={e=>setNombre(e.target.value)}
+                  placeholder="Tu nombre" className={inputClass}/>
               </Campo>
               <Campo label="Correo" icon={<Mail size={15}/>}>
-                <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="correo@ejemplo.com" className={inputClass}/>
+                <input type="email" required value={email} onChange={e=>setEmail(e.target.value)}
+                  placeholder="correo@ejemplo.com" className={inputClass}/>
               </Campo>
               <Campo label="Teléfono (10 dígitos)" icon={<Phone size={15}/>}>
-                <input type="tel" required value={telefono} onChange={e=>setTelefono(e.target.value)} placeholder="1234567890" className={inputClass} maxLength={10}/>
+                <input type="tel" required value={telefono} onChange={e=>setTelefono(e.target.value)}
+                  placeholder="1234567890" className={inputClass} maxLength={10}/>
+              </Campo>
+              <Campo label="Código de acceso" icon={<Lock size={15}/>}>
+                <input type="text" required value={codigo} onChange={e=>setCodigo(e.target.value)}
+                  placeholder="Ingresa el código" className={inputClass}/>
               </Campo>
               <Campo label="Contraseña" icon={<Lock size={15}/>} extra={
-                <button type="button" onClick={()=>setVerPass(!verPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <button type="button" onClick={()=>setVerPass(!verPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                   {verPass ? <EyeOff size={15}/> : <Eye size={15}/>}
                 </button>}>
-                <input type={verPass?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" className={inputClass+' pr-10'}/>
+                <input type={verPass?'text':'password'} required value={password}
+                  onChange={e=>setPassword(e.target.value)} placeholder="Mínimo 6 caracteres"
+                  className={inputClass+' pr-10'}/>
               </Campo>
               <Campo label="Confirmar contraseña" icon={<Lock size={15}/>}>
-                <input type="password" required value={confirmar} onChange={e=>setConfirmar(e.target.value)} placeholder="Repite tu contraseña" className={inputClass}/>
+                <input type="password" required value={confirmar}
+                  onChange={e=>setConfirmar(e.target.value)} placeholder="Repite tu contraseña"
+                  className={inputClass}/>
               </Campo>
               <Alertas error={error} exito={exito}/>
               <BtnSubmit cargando={cargando} label="Crear cuenta"/>
               <p className="text-center text-sm text-gray-500">
                 ¿Ya tienes cuenta?{' '}
-                <button type="button" onClick={()=>cambiarModo('login')} className="text-blue-600 font-semibold hover:underline">Inicia sesión</button>
+                <button type="button" onClick={()=>cambiarModo('login')}
+                  className="text-blue-600 font-semibold hover:underline">Inicia sesión</button>
               </p>
             </form>
           )}
@@ -164,11 +187,13 @@ export default function AuthPage() {
           {modo === 'recuperar' && (
             <form onSubmit={handleRecuperar} className="space-y-4">
               <Campo label="Correo" icon={<Mail size={15}/>}>
-                <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="correo@ejemplo.com" className={inputClass}/>
+                <input type="email" required value={email} onChange={e=>setEmail(e.target.value)}
+                  placeholder="correo@ejemplo.com" className={inputClass}/>
               </Campo>
               <Alertas error={error} exito={exito}/>
               <BtnSubmit cargando={cargando} label="Enviar enlace"/>
-              <button type="button" onClick={()=>cambiarModo('login')} className="w-full flex items-center justify-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
+              <button type="button" onClick={()=>cambiarModo('login')}
+                className="w-full flex items-center justify-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
                 <ArrowLeft size={14}/> Volver al inicio de sesión
               </button>
             </form>
@@ -183,7 +208,9 @@ export default function AuthPage() {
   )
 }
 
-function Campo({ label, icon, extra, children }: { label: string; icon: React.ReactNode; extra?: React.ReactNode; children: React.ReactNode }) {
+function Campo({ label, icon, extra, children }: {
+  label: string; icon: React.ReactNode; extra?: React.ReactNode; children: React.ReactNode
+}) {
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -200,15 +227,24 @@ function Alertas({ error, exito }: { error: string | null; exito: string | null 
   if (!error && !exito) return null
   return (
     <>
-      {error && <div className="flex items-start gap-2 bg-red-50 text-red-700 text-sm border border-red-200 rounded-xl px-3 py-2.5"><AlertCircle size={15} className="shrink-0 mt-0.5"/>{error}</div>}
-      {exito && <div className="flex items-start gap-2 bg-green-50 text-green-700 text-sm border border-green-200 rounded-xl px-3 py-2.5"><CheckCircle size={15} className="shrink-0 mt-0.5"/>{exito}</div>}
+      {error && (
+        <div className="flex items-start gap-2 bg-red-50 text-red-700 text-sm border border-red-200 rounded-xl px-3 py-2.5">
+          <AlertCircle size={15} className="shrink-0 mt-0.5"/>{error}
+        </div>
+      )}
+      {exito && (
+        <div className="flex items-start gap-2 bg-green-50 text-green-700 text-sm border border-green-200 rounded-xl px-3 py-2.5">
+          <CheckCircle size={15} className="shrink-0 mt-0.5"/>{exito}
+        </div>
+      )}
     </>
   )
 }
 
 function BtnSubmit({ cargando, label }: { cargando: boolean; label: string }) {
   return (
-    <button type="submit" disabled={cargando} className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl transition-colors">
+    <button type="submit" disabled={cargando}
+      className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl transition-colors">
       {cargando && <Loader2 size={16} className="animate-spin"/>}
       {label}
     </button>

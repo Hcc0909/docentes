@@ -431,11 +431,15 @@ function SimuladorContenido() {
             {/* Navegación */}
             <div className="flex justify-between items-center">
               <button
-                onClick={() => finalizarExamen(preguntas, respuestas)}
-                className="text-sm text-gray-400 hover:text-red-500 transition-colors"
-              >
-                Terminar examen
-              </button>
+  onClick={() => {
+    if (confirm('¿Seguro que deseas salir? Perderás todo el progreso del examen.')) {
+      router.push('/')
+    }
+  }}
+  className="text-sm text-gray-400 hover:text-red-500 transition-colors"
+>
+  Salir del examen
+</button>
 
               {yaRespondida && (
                 <button

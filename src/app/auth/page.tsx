@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { BookOpen, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle, User, ArrowLeft } from 'lucide-react'
+import { BookOpen, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle, User, ArrowLeft, Phone } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 type Modo = 'login' | 'registro' | 'recuperar'
@@ -12,6 +12,7 @@ export default function AuthPage() {
   const [modo,      setModo]      = useState<Modo>('login')
   const [nombre,    setNombre]    = useState('')
   const [email,     setEmail]     = useState('')
+  const [telefono,  setTelefono]  = useState('')
   const [password,  setPassword]  = useState('')
   const [confirmar, setConfirmar] = useState('')
   const [verPass,   setVerPass]   = useState(false)
@@ -45,16 +46,27 @@ export default function AuthPage() {
 
   async function handleRegistro(e: React.FormEvent) {
     e.preventDefault()
-    if (!nombre.trim())        { setError('El nombre es obligatorio.'); return }
-    if (password !== confirmar) { setError('Las contraseñas no coinciden.'); return }
+    if (!nombre.trim())             { setError('El nombre es obligatorio.'); return }
+    if (!telefono.trim())           { setError('El teléfono es obligatorio.'); return }
+    if (!/^\d{10}$/.test(telefono)) { setError('El teléfono debe tener exactamente 10 dígitos.'); return }
+    if (password !== confirmar)     { setError('Las contraseñas no coinciden.'); return }
     setCargando(true); limpiar()
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email, password,
-        options: { data: { full_name: nombre.trim() } },
+        options: { data: { full_name: nombre.trim(), phone: telefono.trim() } },
       })
       if (error) throw error
-      setExito('¡Cuenta creada! Revisa tu correo para confirmarla.')
+
+      if (data.user) {
+        await supabase.from('perfiles').insert({
+          id: data.user.id,
+          nombre: nombre.trim(),
+          telefono: telefono.trim(),
+        })
+      }
+
+      setExito('¡Cuenta creada! Ya puedes iniciar sesión.')
     } catch (err: unknown) {
       setError(traducirError(err instanceof Error ? err.message : 'Error desconocido'))
     } finally { setCargando(false) }
@@ -80,7 +92,6 @@ export default function AuthPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm fade-in">
 
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl shadow-lg mb-4">
             <BookOpen size={28} className="text-white" />
@@ -127,6 +138,9 @@ export default function AuthPage() {
               </Campo>
               <Campo label="Correo" icon={<Mail size={15}/>}>
                 <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="correo@ejemplo.com" className={inputClass}/>
+              </Campo>
+              <Campo label="Teléfono (10 dígitos)" icon={<Phone size={15}/>}>
+                <input type="tel" required value={telefono} onChange={e=>setTelefono(e.target.value)} placeholder="1234567890" className={inputClass} maxLength={10}/>
               </Campo>
               <Campo label="Contraseña" icon={<Lock size={15}/>} extra={
                 <button type="button" onClick={()=>setVerPass(!verPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">

@@ -12,6 +12,7 @@ const SIMULADORES = [
   { id: 4, titulo: 'Simulador 4', desc: 'Gestión Escolar, CTE y Participación Comunitaria', color: 'from-cyan-500 to-cyan-700' },
   { id: 5, titulo: 'Simulador 5', desc: 'Evaluación Formativa, Convivencia y Vida Saludable', color: 'from-teal-500 to-teal-700' },
   { id: 6, titulo: 'Examen Final', desc: 'Examen Final Integrador', color: 'from-rose-500 to-rose-700' },
+  { id: 7, titulo: 'Quiz Rápido', desc: 'Responde 10 preguntas en 15 segundos cada una. ¡Gana puntos por velocidad!', color: 'from-violet-500 to-purple-700' },
 ]
 
 export default function HomePage() {
@@ -88,7 +89,7 @@ export default function HomePage() {
           {SIMULADORES.map((sim) => (
             <button
               key={sim.id}
-              onClick={() => router.push(`/simulador?id=${sim.id}`)}
+              onClick={() => sim.id === 7 ? router.push('/quiz') : router.push(`/simulador?id=${sim.id}`)}
               className="group flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left w-full"
             >
               {/* Número */}

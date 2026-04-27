@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase, type Pregunta } from '@/lib/supabase'
-import { CheckCircle, XCircle, Trophy, RotateCcw, ArrowLeft, Loader2, Flame, Lock } from 'lucide-react'
+import { CheckCircle, XCircle, Trophy, RotateCcw, ArrowLeft, Loader2, Flame, Home } from 'lucide-react'
 import { setProgresoNivel } from '../page'
 
 const PREGUNTAS_NIVEL  = 15
@@ -11,10 +11,10 @@ const PREGUNTAS_EXAMEN = 10
 const TIEMPO_POR_PREGUNTA = 15
 
 const COLORES = [
-  { bg: 'bg-red-500',    hover: 'hover:bg-red-600',    text: 'text-white',      letra: 'A' },
-  { bg: 'bg-blue-500',   hover: 'hover:bg-blue-600',   text: 'text-white',      letra: 'B' },
-  { bg: 'bg-yellow-400', hover: 'hover:bg-yellow-500', text: 'text-gray-900',   letra: 'C' },
-  { bg: 'bg-green-500',  hover: 'hover:bg-green-600',  text: 'text-white',      letra: 'D' },
+  { bg: 'bg-red-500',    hover: 'hover:bg-red-600',    text: 'text-white',    letra: 'A' },
+  { bg: 'bg-blue-500',   hover: 'hover:bg-blue-600',   text: 'text-white',    letra: 'B' },
+  { bg: 'bg-yellow-400', hover: 'hover:bg-yellow-500', text: 'text-gray-900', letra: 'C' },
+  { bg: 'bg-green-500',  hover: 'hover:bg-green-600',  text: 'text-white',    letra: 'D' },
 ]
 
 const TEMAS: Record<string, string> = {
@@ -35,26 +35,25 @@ function barajar<T>(arr: T[]): T[] {
 }
 
 function JugarContenido() {
-  const router    = useRouter()
-  const params    = useSearchParams()
-  const simId     = Number(params.get('sim') ?? 1)
-  const nivel     = Number(params.get('nivel') ?? 1)
-  const esExamen  = nivel === 3
+  const router   = useRouter()
+  const params   = useSearchParams()
+  const simId    = Number(params.get('sim') ?? 1)
+  const nivel    = Number(params.get('nivel') ?? 1)
+  const esExamen = nivel === 3
   const totalPreg = esExamen ? PREGUNTAS_EXAMEN : PREGUNTAS_NIVEL
 
-  const [fase,         setFase]        = useState<'cargando'|'jugando'|'resultado_p'|'final'>('cargando')
-  const [preguntas,    setPreguntas]   = useState<Pregunta[]>([])
-  const [indice,       setIndice]      = useState(0)
-  const [seleccion,    setSeleccion]   = useState<number|null>(null)
-  const [tiempo,       setTiempo]      = useState(TIEMPO_POR_PREGUNTA)
-  const [puntaje,      setPuntaje]     = useState(0)
-  const [aciertos,     setAciertos]    = useState(0)
-  const [racha,        setRacha]       = useState(0)
-  const [maxRacha,     setMaxRacha]    = useState(0)
-  const [fueCorrecta,  setFueCorrecta] = useState<boolean|null>(null)
-  const [puntosGanados,setPuntosGanados] = useState(0)
+  const [fase,          setFase]          = useState<'cargando'|'jugando'|'resultado_p'|'final'>('cargando')
+  const [preguntas,     setPreguntas]     = useState<Pregunta[]>([])
+  const [indice,        setIndice]        = useState(0)
+  const [seleccion,     setSeleccion]     = useState<number|null>(null)
+  const [tiempo,        setTiempo]        = useState(TIEMPO_POR_PREGUNTA)
+  const [puntaje,       setPuntaje]       = useState(0)
+  const [aciertos,      setAciertos]      = useState(0)
+  const [racha,         setRacha]         = useState(0)
+  const [maxRacha,      setMaxRacha]      = useState(0)
+  const [fueCorrecta,   setFueCorrecta]   = useState<boolean|null>(null)
+  const [puntosGanados, setPuntosGanados] = useState(0)
 
-  // Cargar preguntas barajadas
   useEffect(() => {
     async function cargar() {
       const { data } = await supabase
@@ -62,14 +61,11 @@ function JugarContenido() {
         .select('*')
         .eq('simulador', simId)
       if (data) {
-        // Barajar tanto preguntas como opciones internamente
         const barajadas = barajar(data as Pregunta[])
-        // Para nivel 1: primeras 15, nivel 2: siguientes 15, examen: últimas 10
         let seleccionadas: Pregunta[]
         if (nivel === 1)      seleccionadas = barajadas.slice(0, PREGUNTAS_NIVEL)
         else if (nivel === 2) seleccionadas = barajadas.slice(PREGUNTAS_NIVEL, PREGUNTAS_NIVEL * 2)
         else                  seleccionadas = barajadas.slice(0, PREGUNTAS_EXAMEN)
-
         setPreguntas(seleccionadas)
         setFase('jugando')
         setTiempo(esExamen ? 999 : TIEMPO_POR_PREGUNTA)
@@ -82,12 +78,10 @@ function JugarContenido() {
     if (!preguntas[indice]) return
     const correcta = preguntas[indice].respuesta_correcta
     const acerto   = idx === correcta
-
     setSeleccion(idx)
     setFueCorrecta(acerto)
-
     if (acerto && !esExamen) {
-      const bonus      = Math.round(((tiempo) / TIEMPO_POR_PREGUNTA) * 1000)
+      const bonus      = Math.round((tiempo / TIEMPO_POR_PREGUNTA) * 1000)
       const nuevaRacha = racha + 1
       const bonusRacha = nuevaRacha >= 3 ? Math.round(bonus * 0.5) : 0
       const total      = bonus + bonusRacha
@@ -104,11 +98,9 @@ function JugarContenido() {
       setPuntosGanados(0)
       setRacha(0)
     }
-
     setFase('resultado_p')
   }, [indice, preguntas, tiempo, racha, esExamen])
 
-  // Cronómetro solo en niveles 1 y 2
   useEffect(() => {
     if (fase !== 'jugando' || esExamen) return
     if (tiempo <= 0) { mostrarResultado(null); return }
@@ -118,7 +110,6 @@ function JugarContenido() {
 
   function siguiente() {
     if (indice + 1 >= preguntas.length) {
-      // Guardar progreso en sessionStorage
       const nivelKey = nivel === 1 ? 'nivel1' : nivel === 2 ? 'nivel2' : 'examen'
       setProgresoNivel(simId, nivelKey)
       setFase('final')
@@ -142,10 +133,7 @@ function JugarContenido() {
   const porcentajeTiempo = esExamen ? 100 : (tiempo / TIEMPO_POR_PREGUNTA) * 100
   const porcentajeFinal  = Math.round((aciertos / totalPreg) * 100)
   const aprobado         = porcentajeFinal >= 60
-
-  const TITULOS: Record<number, string> = {
-    1: 'Nivel 1', 2: 'Nivel 2', 3: 'Examen Final'
-  }
+  const TITULOS: Record<number, string> = { 1: 'Nivel 1', 2: 'Nivel 2', 3: 'Examen Final' }
 
   // ── CARGANDO ──
   if (fase === 'cargando') {
@@ -164,27 +152,25 @@ function JugarContenido() {
     const p = preguntas[indice]
     return (
       <div className="min-h-screen bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 flex flex-col">
-        {/* Header */}
         <div className="px-4 pt-4 pb-2 space-y-2">
           <div className="flex items-center justify-between text-white text-sm font-medium">
-            <span className="bg-white/20 px-3 py-1 rounded-full">{indice + 1}/{totalPreg}</span>
+            <button onClick={() => router.push('/area/quiz')} className="bg-white/20 px-3 py-1 rounded-full text-white/80 hover:text-white">
+              <ArrowLeft size={14}/>
+            </button>
             {!esExamen && (
               <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
                 <Flame size={14} className="text-orange-300"/> {racha}
               </div>
             )}
             <span className="bg-white/20 px-3 py-1 rounded-full">
-              {esExamen ? TITULOS[nivel] : `⭐ ${puntaje}`}
+              {esExamen ? `${indice+1}/${totalPreg}` : `⭐ ${puntaje}`}
             </span>
           </div>
-
           {!esExamen && (
             <>
               <div className="h-3 bg-white/20 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-1000 ${tiempo <= 5 ? 'bg-red-400' : tiempo <= 10 ? 'bg-yellow-400' : 'bg-green-400'}`}
-                  style={{ width: `${porcentajeTiempo}%` }}
-                />
+                <div className={`h-full rounded-full transition-all duration-1000 ${tiempo <= 5 ? 'bg-red-400' : tiempo <= 10 ? 'bg-yellow-400' : 'bg-green-400'}`}
+                  style={{ width: `${porcentajeTiempo}%` }}/>
               </div>
               <div className="text-center">
                 <span className={`text-2xl font-extrabold ${tiempo <= 5 ? 'text-red-300' : 'text-white'}`}>{tiempo}</span>
@@ -193,13 +179,11 @@ function JugarContenido() {
           )}
         </div>
 
-        {/* Pregunta */}
         <div className="flex-1 flex flex-col px-4 gap-4">
           <div className="bg-white rounded-2xl p-5 shadow-lg text-center">
+            <p className="text-xs text-gray-400 mb-2">{indice+1} / {totalPreg}</p>
             <p className="text-gray-800 font-semibold leading-relaxed">{p.pregunta}</p>
           </div>
-
-          {/* Opciones */}
           <div className="grid grid-cols-2 gap-3 pb-4">
             {p.opciones.map((op, idx) => {
               const color = COLORES[idx]
@@ -225,7 +209,7 @@ function JugarContenido() {
 
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${fueCorrecta ? 'bg-green-500' : 'bg-red-500'}`}>
-        <div className="max-w-sm w-full space-y-5 text-center fade-in">
+        <div className="max-w-sm w-full space-y-4 text-center fade-in">
 
           {fueCorrecta
             ? <CheckCircle size={64} className="text-white mx-auto"/>
@@ -236,7 +220,6 @@ function JugarContenido() {
             {seleccion === null ? '¡Tiempo!' : fueCorrecta ? '¡Correcto!' : '¡Incorrecto!'}
           </h2>
 
-          {/* Respuesta correcta siempre visible */}
           <div className="bg-white/20 rounded-2xl p-4 text-white text-sm text-left space-y-2">
             <p className="font-bold">✅ Respuesta correcta:</p>
             <p>{p.opciones[correcta]}</p>
@@ -246,7 +229,6 @@ function JugarContenido() {
             </div>
           </div>
 
-          {/* Puntos solo en niveles */}
           {!esExamen && fueCorrecta && (
             <div>
               <p className="text-white/80 text-sm">Puntos ganados</p>
@@ -262,10 +244,27 @@ function JugarContenido() {
             </div>
           )}
 
-          <button onClick={siguiente}
-            className="w-full bg-white text-gray-800 font-extrabold py-4 rounded-2xl text-lg active:scale-95 transition-all">
-            {indice + 1 < preguntas.length ? 'Siguiente →' : 'Ver resultados'}
-          </button>
+          {/* Botones de navegación */}
+          <div className="flex flex-col gap-2 w-full">
+            <button onClick={siguiente}
+              className="w-full bg-white text-gray-800 font-extrabold py-3.5 rounded-2xl text-lg active:scale-95 transition-all">
+              {indice + 1 < preguntas.length ? 'Siguiente →' : 'Ver resultados'}
+            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={reintentar}
+                className="bg-white/20 text-white font-bold py-2.5 rounded-xl text-sm active:scale-95 transition-all flex items-center justify-center gap-1">
+                <RotateCcw size={14}/> Reiniciar
+              </button>
+              <button onClick={() => router.push('/area/quiz')}
+                className="bg-white/20 text-white font-bold py-2.5 rounded-xl text-sm active:scale-95 transition-all flex items-center justify-center gap-1">
+                <ArrowLeft size={14}/> Quiz
+              </button>
+            </div>
+            <button onClick={() => router.push('/')}
+              className="w-full bg-white/10 text-white/80 font-medium py-2.5 rounded-xl text-sm active:scale-95 transition-all flex items-center justify-center gap-1">
+              <Home size={14}/> Menú principal
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -303,7 +302,7 @@ function JugarContenido() {
 
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'Correctas',   valor: aciertos,            emoji: '✅' },
+              { label: 'Correctas',   valor: aciertos,             emoji: '✅' },
               { label: 'Incorrectas', valor: totalPreg - aciertos, emoji: '❌' },
               { label: 'Mejor racha', valor: maxRacha,             emoji: '🔥' },
             ].map(({ label, valor, emoji }) => (
@@ -315,7 +314,6 @@ function JugarContenido() {
             ))}
           </div>
 
-          {/* Siguiente nivel desbloqueado */}
           {aprobado && nivel < 3 && (
             <div className="bg-yellow-400/20 border border-yellow-400/40 rounded-2xl p-3 text-center">
               <p className="text-yellow-300 font-bold text-sm">
@@ -327,11 +325,15 @@ function JugarContenido() {
           <div className="flex flex-col gap-3">
             <button onClick={reintentar}
               className="w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-extrabold py-3.5 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2">
-              <RotateCcw size={18}/> Intentar de nuevo
+              <RotateCcw size={18}/> Reiniciar quiz
             </button>
             <button onClick={() => router.push('/area/quiz')}
-              className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3.5 rounded-2xl transition-all flex items-center justify-center gap-2">
+              className="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-3.5 rounded-2xl transition-all flex items-center justify-center gap-2">
               <ArrowLeft size={18}/> Seleccionar nivel
+            </button>
+            <button onClick={() => router.push('/')}
+              className="w-full bg-white/10 text-white/70 font-medium py-3 rounded-2xl transition-all flex items-center justify-center gap-2">
+              <Home size={18}/> Menú principal
             </button>
           </div>
         </div>

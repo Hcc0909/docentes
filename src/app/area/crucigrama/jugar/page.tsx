@@ -496,7 +496,23 @@ function CrucigramaJugarContenido() {
                 seleccionada?.numero === p.numero ? 'bg-yellow-300/30 text-yellow-100 font-bold' :
                 'bg-white/10 text-white/80 hover:bg-white/20'
               }`}>
-              {p.numero}{p.direccion === 'H' ? '→' : '↓'} {p.pista.slice(0, 25)}…
+              {p.numero}{p.direccion === 'H' ? '→' : '↓'} {/* Pistas */}
+<div className="mx-4 mb-2 max-h-32 overflow-y-auto">
+  <div className="flex flex-col gap-1">
+    {colocadas.map(p => (
+      <button key={p.numero}
+        onClick={() => { setSeleccionada(p); setMostrarPista(true) }}
+        className={`text-left px-3 py-2 rounded-lg text-xs transition-colors w-full ${
+          completadas.has(p.numero)         ? 'bg-green-400/30 text-green-100 line-through' :
+          seleccionada?.numero === p.numero ? 'bg-yellow-300/30 text-yellow-100 font-bold' :
+          'bg-white/10 text-white/80 hover:bg-white/20'
+        }`}>
+        <span className="font-bold">{p.numero}{p.direccion === 'H' ? '→' : '↓'} </span>
+        <span className="break-words">{p.pista}</span>
+      </button>
+    ))}
+  </div>
+</div>
             </button>
           ))}
         </div>
